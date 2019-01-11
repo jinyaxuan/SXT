@@ -19,5 +19,3 @@ with tf.Session() as sess:
 
 print(B_val_1)
 print(B_val_2)
-
-

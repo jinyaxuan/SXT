@@ -1,9 +1,12 @@
+import os
+import time
+
+import numpy as np
 import tensorflow as tf
 from sklearn.datasets import fetch_california_housing
-import numpy as np
 from sklearn.preprocessing import StandardScaler
-import time
-import os
+from tensorflow.examples.tutorials.mnist import input_data
+
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 # with tf.device(':gpu:0/'):
@@ -105,63 +108,95 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 #     best_theta = theta.eval()
 #
 #     print(best_theta)
-a = time.time()
-n_epochs = 1000
-learning_rate = 0.001
-batch_size = 2000
+# a = time.time()
+# n_epochs = 1000
+# learning_rate = 0.001
+# batch_size = 2000
+#
+# housing = fetch_california_housing()
+# m, n = housing.data.shape
+# housing_data_plus_bias = np.c_[np.ones((m, 1)), housing.data]
+#
+# scaler = StandardScaler().fit(housing_data_plus_bias)
+# scaler_housing_data_plus_bias = scaler.transform(housing_data_plus_bias)
+#
+# X_train = scaler_housing_data_plus_bias[:18000]
+# X_test = scaler_housing_data_plus_bias[18000:]
+# y_train = housing.target.reshape(-1, 1)[:18000]
+# y_test = housing.target.reshape(-1, 1)[18000:]
+#
+# X = tf.placeholder(dtype=tf.float32, name='X')
+# y = tf.placeholder(dtype=tf.float32, name='y')
+#
+# theta = tf.Variable(tf.random_uniform([n + 1, 1], -1.0, 1.0), name='theta')
+# y_pred = tf.matmul(X, theta, name='predictions')
+# error = y_pred - y
+# rmse = tf.sqrt(tf.reduce_mean(tf.square(error)), name='error')
+#
+# traininge_op = tf.train.GradientDescentOptimizer(
+#     learning_rate=learning_rate).minimize(rmse)
+#
+# init = tf.global_variables_initializer()
+#
+# with tf.Session() as sess:
+#     sess.run(init)
+#
+#     n_batch = int(18000 / batch_size)
+#
+#     for epoch in range(n_epochs):
+#         print('Epoch:', epoch, 'train_RMSE:',
+#               sess.run(rmse, feed_dict={X: X_train,
+#                                         y: y_train
+#                                         }
+#                        ))
+#         print('Epoch:', epoch, 'test_RMSE:',
+#               sess.run(rmse, feed_dict={X: X_test,
+#                                         y: y_test
+#                                         }
+#                        ))
+#         arr = np.arange(18000)
+#         np.random.shuffle(arr)
+#         X_train = X_train[arr]
+#         y_train = y_train[arr]
+#
+#         for i in range(n_batch):
+#             sess.run(traininge_op, feed_dict={
+#                 X: X_train[i * batch_size: i * batch_size + batch_size],
+#                 y: y_train[i * batch_size: i * batch_size + batch_size]
+#             })
+#
+#     best_theta = theta.eval()
+#     print(best_theta)
+# b = time.time()
+# print(b - a)
 
-housing = fetch_california_housing()
-m, n = housing.data.shape
-housing_data_plus_bias = np.c_[np.ones((m, 1)), housing.data]
 
-scaler = StandardScaler().fit(housing_data_plus_bias)
-scaler_housing_data_plus_bias = scaler.transform(housing_data_plus_bias)
+__author__ = 'Lucifer'
 
-X_train = scaler_housing_data_plus_bias[:18000]
-X_test = scaler_housing_data_plus_bias[18000:]
-y_train = housing.target.reshape(-1, 1)[:18000]
-y_test = housing.target.reshape(-1, 1)[18000:]
+my_mnist = input_data.read_data_sets('MNIST_data_bak/', one_hot=True)
 
-X = tf.placeholder(dtype=tf.float32, name='X')
-y = tf.placeholder(dtype=tf.float32, name='y')
+X = tf.placeholder(dtype=tf.float32, shape=(None, 784), name='X')
+W = tf.Variable(tf.zeros([784, 10]), name='W')
+b = tf.Variable(tf.zeros([10]), name='b')
+y_pred = tf.nn.softmax(tf.matmul(X, W) + b)
+y = tf.placeholder(dtype=tf.float32, shape=(None, 10))
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(y *
+                                              tf.log(y_pred), reduction_indices=[1]))
+train_step = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entropy)
 
-theta = tf.Variable(tf.random_uniform([n + 1, 1], -1.0, 1.0), name='theta')
-y_pred = tf.matmul(X, theta, name='predictions')
-error = y_pred - y
-rmse = tf.sqrt(tf.reduce_mean(tf.square(error)), name='error')
+correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(y, 1))
 
-traininge_op = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(rmse)
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-init = tf.global_variables_initializer()
+sess = tf.InteractiveSession()
+sess.run(tf.global_variables_initializer())
+for _ in range(10000):
+    batch_xs, batch_ys = my_mnist.train.next_batch(100)
+    sess.run(train_step, feed_dict={X: batch_xs, y: batch_ys})
+    print('TrainSet batch accuracy : %s' %
+          accuracy.eval({X: batch_xs, y: batch_ys}))
+    print('ValidSet accuracy : %s' % accuracy.eval(
+        {X: my_mnist.validation.images, y: my_mnist.validation.labels}))
 
-with tf.Session() as sess:
-    sess.run(init)
-
-    n_batch = int(18000 / batch_size)
-
-    for epoch in range(n_epochs):
-        print('Epoch:', epoch, 'train_RMSE:',
-              sess.run(rmse, feed_dict={X: X_train,
-                                        y: y_train
-                                        }
-                       ))
-        print('Epoch:', epoch, 'test_RMSE:',
-              sess.run(rmse, feed_dict={X: X_test,
-                                        y: y_test
-                                        }
-                       ))
-        arr = np.arange(18000)
-        np.random.shuffle(arr)
-        X_train = X_train[arr]
-        y_train = y_train[arr]
-
-        for i in range(n_batch):
-            sess.run(traininge_op, feed_dict={
-                X: X_train[i*batch_size: i*batch_size + batch_size],
-                y: y_train[i*batch_size: i*batch_size + batch_size]
-            })
-
-    best_theta = theta.eval()
-    print(best_theta)
-b = time.time()
-print(b-a)
+print('TestSet accuracy : %s' % accuracy.eval(
+    {X: my_mnist.test.images, y: my_mnist.test.labels}))

@@ -1,8 +1,7 @@
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 from sklearn.datasets import fetch_california_housing
 from sklearn.preprocessing import StandardScaler
-
 
 # 前面的代码执行的不错，但是它需要数学上通过损失函数MSE来求导梯度
 # 在线性回归的例子中，这样是可以的，看起来通过数学公式去求解不难
@@ -25,7 +24,7 @@ X = tf.constant(scaled_housing_data_plus_bias, dtype=tf.float32, name='X')
 y = tf.constant(housing.target.reshape(-1, 1), dtype=tf.float32, name='y')
 
 # random_uniform函数创建图里一个节点包含随机数值，给定它的形状和取值范围，就像numpy里面rand()函数
-theta = tf.Variable(tf.random_uniform([n + 1, 1], -1.0, 1.0), name='theta')
+theta = tf.Variable(tf.rasndom_uniform([n + 1, 1], -1.0, 1.0), name='theta')
 y_pred = tf.matmul(X, theta, name="predictions")
 error = y_pred - y
 mse = tf.reduce_mean(tf.square(error), name="mse")
@@ -47,8 +46,3 @@ with tf.Session() as sess:
 
     best_theta = theta.eval()
     print(best_theta)
-
-
-
-
-

@@ -2,8 +2,9 @@
 # -*- coding: UTF-8 -*-
 # 文件名: 12_Softmax_regression.py
 
-from tensorflow.examples.tutorials.mnist import input_data
 import tensorflow as tf
+from tensorflow.examples.tutorials.mnist import input_data
+
 # import os
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -34,7 +35,8 @@ y = tf.placeholder(dtype=tf.float32, shape=(None, 10))
 # 定义损失函数，交叉熵损失函数
 # 对于多分类问题，通常使用交叉熵损失函数
 # reduction_indices等价于axis，指明按照每行加，还是按照每列加
-cross_entropy = tf.reduce_mean(-tf.reduce_sum(y * tf.log(y_pred), reduction_indices=[1]))
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(y *
+                                              tf.log(y_pred), reduction_indices=[1]))
 train_step = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entropy)
 
 # 评估
@@ -51,11 +53,14 @@ tf.global_variables_initializer().run()
 for _ in range(10000):
     batch_xs, batch_ys = my_mnist.train.next_batch(100)
     sess.run(train_step, feed_dict={x: batch_xs, y: batch_ys})
-    print("TrainSet batch acc : %s  " % accuracy.eval({x: batch_xs, y: batch_ys}))
-    print("ValidSet acc : %s" % accuracy.eval({x: my_mnist.validation.images, y: my_mnist.validation.labels}))
+    print("TrainSet batch acc : %s  " %
+          accuracy.eval({x: batch_xs, y: batch_ys}))
+    print("ValidSet acc : %s" % accuracy.eval(
+        {x: my_mnist.validation.images, y: my_mnist.validation.labels}))
 
 # 测试
-print("TestSet acc : %s" % accuracy.eval({x: my_mnist.test.images, y: my_mnist.test.labels}))
+print("TestSet acc : %s" % accuracy.eval(
+    {x: my_mnist.test.images, y: my_mnist.test.labels}))
 
 # 总结
 # 1，定义算法公式，也就是神经网络forward时的计算
